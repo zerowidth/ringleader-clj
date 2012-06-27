@@ -3,6 +3,7 @@
            (java.io InputStreamReader OutputStreamWriter BufferedReader
                     BufferedWriter)))
 ; copied and tweaked from socket-server.clj
+; each accepted connection runs on its own thread
 
 (defn- on-thread [f]
   (doto (Thread. ^Runnable f)
@@ -16,13 +17,15 @@
       (.close))))
 
 (defn- accept-fn [^Socket s connections fun]
-  (let [in (-> s .getInputStream InputStreamReader. BufferedReader.)
-        out (-> s .getOutputStream OutputStreamWriter. BufferedWriter.)]
+  (println "connection accepted")
+  (let [in (.getInputStream s)
+        out (.getOutputStream s)]
     (on-thread #(do
                   (dosync (commute connections conj s))
                   (try
                     (fun s in out)
                     (catch SocketException e))
+                  (println "closing connection")
                   (close-socket s)
                   (dosync (commute connections disj s))))))
 
