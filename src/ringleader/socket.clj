@@ -48,3 +48,21 @@
 (defn connection-count [server]
   (count @(:connections server)))
 
+(defn- open-connection [host port]
+  (try
+    (Socket. host port)
+    (catch SocketException e
+      (println "could not connect to" host "on port" port))))
+
+(defn create-client [fun port]
+  (if-let [s (open-connection "localhost" port)]
+    (let [in (.getInputStream s)
+          out (.getOutputStream s)]
+      (try
+        (fun s in out)
+        (catch SocketException e))
+      (println "closing client connection")
+      (close-socket s))
+    (println "couldn't connect?")))
+
+
