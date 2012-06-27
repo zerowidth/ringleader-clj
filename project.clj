@@ -2,4 +2,5 @@
   :description "FIXME: write description"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [conch "0.2.1"]]
+  ; FIXME move to ringleader.cli
   :main ringleader.core)
