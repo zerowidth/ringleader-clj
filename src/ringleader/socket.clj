@@ -1,4 +1,5 @@
 (ns ringleader.socket
+  (:require [clojure.java.io :as io])
   (:import (java.net InetAddress ServerSocket Socket SocketException)
            (java.io InputStreamReader OutputStreamWriter BufferedReader
                     BufferedWriter)))
@@ -8,6 +9,17 @@
 (defn- on-thread [f]
   (doto (Thread. ^Runnable f)
     (.start)))
+
+(defn proxy-streams [upstream-in upstream-out downstream-in downstream-out]
+  (let [finished (promise)]
+    (on-thread #(do
+                  (io/copy upstream-in downstream-out)
+                  (deliver finished true)))
+    (on-thread #(do
+                  (io/copy downstream-in upstream-out)
+                  (deliver finished true)))
+    ; wait for either the upstream *or* downstream to close
+    (deref finished)))
 
 (defn- close-socket [^Socket s]
   (when-not (.isClosed s)
