@@ -23,7 +23,7 @@
     (on-thread #(do
                   (dosync (commute connections conj s))
                   (try
-                    (fun s in out)
+                    (fun in out)
                     (catch SocketException e))
                   (println "closing connection")
                   (close-socket s)
@@ -59,7 +59,7 @@
     (let [in (.getInputStream s)
           out (.getOutputStream s)]
       (try
-        (fun s in out)
+        (fun in out)
         (catch SocketException e))
       (println "closing client connection")
       (close-socket s))
