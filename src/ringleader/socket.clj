@@ -13,10 +13,14 @@
 (defn proxy-streams [upstream-in upstream-out downstream-in downstream-out]
   (let [finished (promise)]
     (on-thread #(do
-                  (io/copy upstream-in downstream-out)
+                  (try
+                    (io/copy upstream-in downstream-out)
+                    (catch SocketException e))
                   (deliver finished true)))
     (on-thread #(do
-                  (io/copy downstream-in upstream-out)
+                  (try
+                    (io/copy downstream-in upstream-out)
+                    (catch SocketException e))
                   (deliver finished true)))
     ; wait for either the upstream *or* downstream to close
     (deref finished)))
