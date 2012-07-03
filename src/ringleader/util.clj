@@ -1,8 +1,7 @@
 (ns ringleader.util)
 
-; TODO make this a macro that takes a body of statements rather than a function
-(defn on-thread [f]
-  "Fire and forget code to run on a thread."
-  (doto (Thread. ^Runnable f)
-    (.start)))
+(defmacro on-thread [& body]
+  "Execute body on its own thread. Provides an implicit (do ...)."
+  (when body
+    `(doto (Thread. ^Runnable #(do ~@body)) (.start))))
 

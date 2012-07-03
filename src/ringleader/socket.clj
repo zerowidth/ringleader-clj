@@ -11,16 +11,16 @@
   [upstream-in upstream-out downstream-in downstream-out]
   "Proxy a pair of in/out streams to another pair of in/out streams."
   (let [finished (promise)]
-    (on-thread #(do
-                  (try
-                    (io/copy upstream-in downstream-out)
-                    (catch SocketException e))
-                  (deliver finished true)))
-    (on-thread #(do
-                  (try
-                    (io/copy downstream-in upstream-out)
-                    (catch SocketException e))
-                  (deliver finished true)))
+    (on-thread
+      (try
+        (io/copy upstream-in downstream-out)
+        (catch SocketException e))
+      (deliver finished true))
+    (on-thread
+      (try
+        (io/copy downstream-in upstream-out)
+        (catch SocketException e))
+      (deliver finished true))
     ; wait for either the upstream *or* downstream to close
     (deref finished)))
 
@@ -35,14 +35,14 @@
   (println "connection accepted")
   (let [in (.getInputStream s)
         out (.getOutputStream s)]
-    (on-thread #(do
-                  (dosync (commute connections conj s))
-                  (try
-                    (callback in out)
-                    (catch SocketException e))
-                  (println "closing connection")
-                  (close-socket s)
-                  (dosync (commute connections disj s))))))
+    (on-thread
+      (dosync (commute connections conj s))
+      (try
+        (callback in out)
+        (catch SocketException e))
+      (println "closing connection")
+      (close-socket s)
+      (dosync (commute connections disj s)))))
 
 (defn create-server
   [callback port]
@@ -55,7 +55,7 @@
 
   (let [server (ServerSocket. port)
         connections (ref #{})]
-    (on-thread #(when-not (.isClosed server)
+    (on-thread (when-not (.isClosed server)
                   (try
                     (accept-fn (.accept server) connections callback)
                     (catch SocketException e))

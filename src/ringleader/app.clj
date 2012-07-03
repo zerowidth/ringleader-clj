@@ -10,9 +10,9 @@
           port-opened (future (wait-for-port 10001))
           exit-code (future (sh/exit-code proc))
           started (promise)]
-      (on-thread #(sh/stream-to proc :out (System/out)))
-      (on-thread #(sh/stream-to proc :err (System/err)))
-      (on-thread (fn []
+      (on-thread (sh/stream-to proc :out (System/out)))
+      (on-thread (sh/stream-to proc :err (System/err)))
+      (on-thread (loop []
                    (Thread/sleep 1000)
                    (println "checking")
                    (cond
