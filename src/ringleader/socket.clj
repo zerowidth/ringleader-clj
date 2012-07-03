@@ -1,14 +1,11 @@
 (ns ringleader.socket
   (:require [clojure.java.io :as io])
+  (:use [ringleader.util :only [on-thread]])
   (:import (java.net InetAddress ServerSocket Socket SocketException)
            (java.io InputStreamReader OutputStreamWriter BufferedReader
                     BufferedWriter)))
 ; copied and tweaked from socket-server.clj
 ; each accepted connection runs on its own thread
-
-(defn- on-thread [f]
-  (doto (Thread. ^Runnable f)
-    (.start)))
 
 (defn proxy-streams
   [upstream-in upstream-out downstream-in downstream-out]
