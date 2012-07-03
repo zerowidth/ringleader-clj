@@ -103,3 +103,21 @@
       (close-socket s))
     (println "couldn't connect?")))
 
+(defn wait-for-port [port  & {:keys [sleep timeout] :or {sleep 500 timeout 30000}}]
+  "Wait for a port to open.
+
+   port     - the port to connect to
+   :sleep   - (optional) sleep wait time, default 500ms
+   :timeout - (optional) timeout before giving up, nil if forever, default 30,000ms
+
+   Returns true if successful, nil if timed out"
+  (loop [t timeout]
+    (when (or (nil? t) (> t 0))
+      (if-let [c (open-connection "localhost" port)]
+        (do
+          (close-socket c)
+          true)
+        (do
+          (Thread/sleep sleep)
+          (recur (- t sleep)))))))
+
